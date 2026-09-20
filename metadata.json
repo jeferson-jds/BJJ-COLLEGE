@@ -1,0 +1,6 @@
+{
+  "name": "BJJ College",
+  "description": "Sistema completo de gestão para academia de Jiu Jitsu BJJ College - Família Gorillaz com o Prof. Rogério",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
