@@ -3,8 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { primeiroAcessoSchema, PrimeiroAcessoFormData } from '../lib/validators';
-import { isRealSupabaseConfigured, supabase } from '../lib/supabase';
-import { localStore } from '../lib/store';
+import { supabase } from '../lib/supabase';
 import { Logo } from '../components/Logo';
 import { Lock, Mail, CheckCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -20,7 +19,7 @@ export const PrimeiroAcesso: React.FC = () => {
   } = useForm<PrimeiroAcessoFormData>({
     resolver: zodResolver(primeiroAcessoSchema),
     defaultValues: {
-      email: 'marcos.rocha@email.com',
+      email: '',
       novaSenha: '',
       confirmarSenha: '',
     },
@@ -28,37 +27,26 @@ export const PrimeiroAcesso: React.FC = () => {
 
   const onSubmit = async (data: PrimeiroAcessoFormData) => {
     try {
-      if (isRealSupabaseConfigured) {
+      // 1. Tenta atualizar senha se já estiver autenticado via token de convite
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (sessionData.session) {
         const { error } = await supabase.auth.updateUser({
           password: data.novaSenha,
         });
-
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
       } else {
-        const profiles = localStore.getProfiles();
-        const prof = profiles.find((p) => p.email.toLowerCase() === data.email.toLowerCase());
+        // Tenta signUp com o e-mail convidado
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: data.email.trim(),
+          password: data.novaSenha,
+        });
 
-        if (!prof) {
-          toast.error('Nenhum cadastro pendente encontrado com este e-mail.');
-          return;
-        }
-
-        prof.status_convite = 'aceito';
-        prof.accepted_at = new Date().toISOString();
-        prof.user_id = prof.user_id || `usr-${Date.now()}`;
-        localStore.saveProfiles(profiles);
-
-        const roles = localStore.getRoles();
-        if (!roles.some((r) => r.user_id === prof.user_id)) {
-          roles.push({
-            id: `role-${Date.now()}`,
-            user_id: prof.user_id,
-            role: 'aluno',
-            created_at: new Date().toISOString(),
-          });
-          localStore.saveRoles(roles);
+        if (signUpError) {
+          // Se o usuário já existe no Auth, tenta redefinir
+          const { error: resetError } = await supabase.auth.resetPasswordForEmail(data.email.trim());
+          if (resetError) throw signUpError;
+          toast.info('Um link de confirmação foi enviado para seu e-mail.');
         }
       }
 
@@ -82,9 +70,9 @@ export const PrimeiroAcesso: React.FC = () => {
         </p>
       </div>
 
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-neutral-100 overflow-hidden">
+      <div className="w-full max-w-md bg-[#141414] rounded-3xl shadow-2xl border border-neutral-800 overflow-hidden">
         <div className="p-6 sm:p-8">
-          <div className="mb-6 p-3.5 rounded-2xl bg-neutral-900 text-neutral-200 text-xs border border-neutral-800 text-center">
+          <div className="mb-6 p-3.5 rounded-2xl bg-black/60 text-neutral-200 text-xs border border-neutral-800 text-center">
             🥋 <strong>Você foi convidado para fazer parte da Família Gorillaz!</strong>
             <p className="text-[11px] text-neutral-400 mt-1">
               Complete a ativação da sua conta definindo uma senha segura.
@@ -93,94 +81,94 @@ export const PrimeiroAcesso: React.FC = () => {
 
           {successMessage ? (
             <div className="text-center py-4 space-y-4">
-              <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-inner">
+              <div className="w-14 h-14 mx-auto rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center shadow-inner">
                 <CheckCircle className="w-7 h-7" />
               </div>
-              <h2 className="text-lg font-bold text-neutral-900">Acesso Liberado!</h2>
-              <p className="text-xs text-neutral-600 leading-relaxed">{successMessage}</p>
+              <h2 className="text-lg font-bold text-white">Acesso Liberado!</h2>
+              <p className="text-xs text-neutral-300 leading-relaxed">{successMessage}</p>
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                className="w-full py-3 bg-neutral-950 hover:bg-neutral-900 text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer"
+                className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider font-['Oswald',sans-serif] rounded-xl transition shadow-red-glow cursor-pointer"
               >
-                Ir para Login
+                Acessar Tatame Agora
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                  E-mail do Convite
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
+                  E-mail Convidado
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3.5" />
+                  <Mail className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3.5" />
                   <input
                     type="email"
-                    placeholder="seu.email@exemplo.com"
+                    placeholder="seu-email@dominio.com"
                     {...register('email')}
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-neutral-300 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-neutral-900"
+                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-neutral-700 bg-[#0f0f0f] text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition-all text-white placeholder:text-neutral-500"
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>
+                  <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                  Criar Nova Senha
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
+                  Nova Senha
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3.5" />
+                  <Lock className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3.5" />
                   <input
                     type="password"
-                    placeholder="Mínimo 8 caracteres (1 maiúscula + 1 número)"
+                    placeholder="••••••••"
                     {...register('novaSenha')}
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-neutral-300 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-neutral-900"
+                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-neutral-700 bg-[#0f0f0f] text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition-all text-white placeholder:text-neutral-500"
                   />
                 </div>
                 {errors.novaSenha && (
-                  <p className="text-xs text-red-600 mt-1">{errors.novaSenha.message}</p>
+                  <p className="text-xs text-red-500 mt-1">{errors.novaSenha.message}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
                   Confirmar Nova Senha
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3.5" />
+                  <Lock className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3.5" />
                   <input
                     type="password"
-                    placeholder="Repita a nova senha"
+                    placeholder="••••••••"
                     {...register('confirmarSenha')}
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-neutral-300 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-neutral-900"
+                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-neutral-700 bg-[#0f0f0f] text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition-all text-white placeholder:text-neutral-500"
                   />
                 </div>
                 {errors.confirmarSenha && (
-                  <p className="text-xs text-red-600 mt-1">{errors.confirmarSenha.message}</p>
+                  <p className="text-xs text-red-500 mt-1">{errors.confirmarSenha.message}</p>
                 )}
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-2 py-3.5 px-4 bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full mt-2 py-3.5 px-4 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider font-['Oswald',sans-serif] rounded-xl transition shadow-red-glow flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? (
                   <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span>Ativar Minha Conta</span>
+                  <span>Cadastrar Senha & Ativar Conta</span>
                 )}
               </button>
 
-              <div className="text-center pt-2">
+              <div className="pt-4 text-center">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 font-semibold"
+                  className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Voltar para o Login</span>
+                  <span>Voltar para tela de Login</span>
                 </Link>
               </div>
             </form>

@@ -110,11 +110,11 @@ CREATE TABLE IF NOT EXISTS configuracoes (
 
 -- Inserir configurações padrão da BJJ College
 INSERT INTO configuracoes (chave, valor) VALUES
-  ('chave_pix', 'gorillaz@bjjcollege.com.br'),
+  ('chave_pix', '21991545136'),
   ('valor_mensalidade', '180.00'),
   ('dia_vencimento', '10'),
   ('nome_academia', 'BJJ College'),
-  ('nome_professor', 'Gorillaz')
+  ('nome_professor', 'Rogério')
 ON CONFLICT (chave) DO NOTHING;
 
 -- 10. ÍNDICES PARA ALTA PERFORMANCE

@@ -4,6 +4,7 @@ import { AppHeader } from './components/AppHeader';
 import { BottomNavigation } from './components/BottomNavigation';
 import { AdminRoute, AlunoRoute } from './components/ProtectedRoute';
 import { SplashScreen } from './components/SplashScreen';
+import { FuturisticWatermark } from './components/FuturisticWatermark';
 import { useAuth } from './hooks/useAuth';
 
 // Pages
@@ -42,16 +43,23 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-100/70 text-neutral-900 selection:bg-red-600 selection:text-white font-sans">
+    <div className="min-h-screen flex flex-col bg-[#0a0a0a] text-neutral-100 selection:bg-red-600 selection:text-white font-sans relative overflow-x-hidden">
+      {/* Marca D'Água Futurista Dark Mode - Família Gorillaz */}
+      <FuturisticWatermark />
+
+      {/* Cabeçalho */}
       {user && (
-        <AppHeader
-          userName={profile?.nome_completo || user.nome_completo}
-          userFaixa={alunoData?.faixa_atual}
-          isAdmin={isAdmin}
-        />
+        <div className="relative z-20">
+          <AppHeader
+            userName={profile?.nome_completo || user.nome_completo}
+            userFaixa={alunoData?.faixa_atual}
+            isAdmin={isAdmin}
+          />
+        </div>
       )}
 
-      <main className="flex-1">
+      {/* Conteúdo Principal com Container Amplo */}
+      <main className="flex-1 relative z-10 w-full">
         <Routes>
           {/* Redirecionamento Inicial */}
           <Route path="/" element={<RootRedirect />} />
@@ -83,7 +91,12 @@ const AppContent: React.FC = () => {
         </Routes>
       </main>
 
-      {user && <BottomNavigation />}
+      {/* Barra de Navegação Mobile */}
+      {user && (
+        <div className="relative z-30">
+          <BottomNavigation />
+        </div>
+      )}
     </div>
   );
 };

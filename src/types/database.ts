@@ -143,6 +143,14 @@ export interface BJJCollegeConfig {
   nome_professor: string;
 }
 
+export const DEFAULT_CONFIG: BJJCollegeConfig = {
+  chave_pix: '21991545136',
+  valor_mensalidade: '180.00',
+  dia_vencimento: '10',
+  nome_academia: 'BJJ College',
+  nome_professor: 'Rogério',
+};
+
 export interface SupabaseDatabase {
   public: {
     Tables: {

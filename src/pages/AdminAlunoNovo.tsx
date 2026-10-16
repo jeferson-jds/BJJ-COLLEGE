@@ -15,7 +15,6 @@ export const AdminAlunoNovo: React.FC = () => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<NovoAlunoFormData>({
     resolver: zodResolver(novoAlunoSchema),
@@ -30,8 +29,6 @@ export const AdminAlunoNovo: React.FC = () => {
     },
   });
 
-  const selectedFaixa = watch('faixa_atual') as FaixaBJJ;
-
   const onSubmit = async (data: NovoAlunoFormData) => {
     try {
       await createAluno(data);
@@ -42,84 +39,84 @@ export const AdminAlunoNovo: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 pb-20 md:pb-6">
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
             to="/admin/alunos"
-            className="p-2 rounded-xl bg-white border border-neutral-200 text-neutral-600 hover:text-neutral-900 transition-colors shadow-xs"
+            className="p-2 rounded-xl bg-[#141414] border border-neutral-800 text-neutral-400 hover:text-white transition-colors shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-black uppercase tracking-tight text-neutral-900 font-sans">
-              Matrícula de Novo Aluno
+            <h1 className="text-2xl font-bold uppercase tracking-tight text-white font-['Oswald',sans-serif]">
+              Matrícula de Novo Aluno • Família Gorillaz
             </h1>
-            <p className="text-xs text-neutral-500">
-              Cadastre os dados e dispare o convite de primeiro acesso para a BJJ College
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Cadastre os dados cadastrais diretamente na base de dados oficial do Supabase
             </p>
           </div>
         </div>
       </div>
 
-      {/* Formulário Principal */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-neutral-200/80 shadow-xs">
+      {/* Formulário Principal em Dark Mode */}
+      <div className="bg-[#141414] p-6 sm:p-8 rounded-2xl border border-neutral-800 shadow-xl">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Nome Completo */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
               Nome Completo do Aluno *
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-neutral-400 absolute left-3 top-3" />
+              <User className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3" />
               <input
                 type="text"
                 placeholder="Ex: Carlos Gracie Filho"
                 {...register('nome_completo')}
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-neutral-300 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-neutral-900"
+                className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-neutral-700 bg-[#0f0f0f] text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-white placeholder:text-neutral-500 font-medium"
               />
             </div>
             {errors.nome_completo && (
-              <p className="text-xs text-red-600 mt-1">{errors.nome_completo.message}</p>
+              <p className="text-xs text-red-500 mt-1">{errors.nome_completo.message}</p>
             )}
           </div>
 
           {/* Email e Telefone */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                E-mail (Para convite de login) *
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
+                E-mail (Para acesso e cobrança) *
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-neutral-400 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3" />
                 <input
                   type="email"
                   placeholder="aluno@email.com"
                   {...register('email')}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-neutral-300 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-neutral-900"
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-neutral-700 bg-[#0f0f0f] text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-white placeholder:text-neutral-500"
                 />
               </div>
               {errors.email && (
-                <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>
+                <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
                 Telefone / WhatsApp
               </label>
               <div className="relative">
-                <Phone className="w-4 h-4 text-neutral-400 absolute left-3 top-3" />
+                <Phone className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3" />
                 <input
                   type="text"
-                  placeholder="(11) 99999-9999"
+                  placeholder="(21) 99999-9999"
                   {...register('telefone')}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-neutral-300 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-neutral-900"
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-neutral-700 bg-[#0f0f0f] text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-white placeholder:text-neutral-500"
                 />
               </div>
               {errors.telefone && (
-                <p className="text-xs text-red-600 mt-1">{errors.telefone.message}</p>
+                <p className="text-xs text-red-500 mt-1">{errors.telefone.message}</p>
               )}
             </div>
           </div>
@@ -127,74 +124,73 @@ export const AdminAlunoNovo: React.FC = () => {
           {/* Data Início e Faixa Inicial */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
                 Data de Início no Dojo *
               </label>
               <div className="relative">
-                <Calendar className="w-4 h-4 text-neutral-400 absolute left-3 top-3" />
+                <Calendar className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3" />
                 <input
                   type="date"
                   {...register('data_inicio')}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-neutral-300 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-neutral-900"
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-neutral-700 bg-[#0f0f0f] text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-white"
                 />
               </div>
               {errors.data_inicio && (
-                <p className="text-xs text-red-600 mt-1">{errors.data_inicio.message}</p>
+                <p className="text-xs text-red-500 mt-1">{errors.data_inicio.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                Faixa Atual / Ingresso *
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
+                Faixa Inicial / Graduação de Ingresso *
               </label>
               <select
                 {...register('faixa_atual')}
-                className="w-full px-3 py-2.5 rounded-xl border border-neutral-300 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-neutral-900 bg-white font-medium"
+                className="w-full px-3 py-2.5 rounded-xl border border-neutral-700 bg-[#0f0f0f] text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-white font-medium"
               >
                 {Object.entries(FAIXAS_BJJ).map(([key, info]) => (
-                  <option key={key} value={key}>
+                  <option key={key} value={key} className="bg-[#141414] text-white">
                     {info.label}
                   </option>
                 ))}
               </select>
               {errors.faixa_atual && (
-                <p className="text-xs text-red-600 mt-1">{errors.faixa_atual.message}</p>
+                <p className="text-xs text-red-500 mt-1">{errors.faixa_atual.message}</p>
               )}
             </div>
           </div>
 
           {/* Observações */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-              Observações Médicas ou Histórico
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
+              Observações Médicas ou Histórico Técnico
             </label>
             <textarea
               rows={3}
-              placeholder="Ex: Possui lesão no ombro esquerdo, treina para competição de kimono, etc."
+              placeholder="Ex: Histórico em outra equipe, competidor, lesões prévias..."
               {...register('observacoes')}
-              className="w-full p-3 rounded-xl border border-neutral-300 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-neutral-900"
+              className="w-full p-3 rounded-xl border border-neutral-700 bg-[#0f0f0f] text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none text-white placeholder:text-neutral-500"
             />
-            {errors.observacoes && (
-              <p className="text-xs text-red-600 mt-1">{errors.observacoes.message}</p>
-            )}
           </div>
 
-          {/* Aviso de Segurança e Convite */}
-          <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+          {/* Aviso de Segurança */}
+          <div className="p-4 rounded-xl bg-black/40 border border-neutral-800 text-xs text-neutral-400 flex items-start gap-3">
+            <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-neutral-800">Convite Seguro com RLS</p>
-              <p className="mt-0.5">
-                Ao cadastrar, o perfil será criado como <span className="font-semibold">aluno</span> na tabela segura `user_roles`. O aluno receberá um link para definir sua senha e nunca terá permissão de alterar faixas ou valores financeiros.
+              <p className="font-bold text-white uppercase font-['Oswald',sans-serif] tracking-wide">
+                Integração Direta Supabase & RLS
+              </p>
+              <p className="mt-0.5 text-neutral-400">
+                O registro será persistido de forma segura na tabela `alunos` vinculada ao `profiles` no Supabase com isolamento de privilégios.
               </p>
             </div>
           </div>
 
           {/* Botões de Ação */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-800">
             <Link
               to="/admin/alunos"
-              className="px-4 py-2.5 text-xs font-bold text-neutral-600 hover:text-neutral-900 rounded-xl transition-colors"
+              className="px-4 py-2.5 text-xs font-bold text-neutral-400 hover:text-white rounded-xl transition-colors"
             >
               Cancelar
             </Link>
@@ -202,14 +198,14 @@ export const AdminAlunoNovo: React.FC = () => {
               id="btn-submit-novo-aluno"
               type="submit"
               disabled={isCreating}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs rounded-xl transition-all shadow-md"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider font-['Oswald',sans-serif] rounded-xl transition-all shadow-red-glow cursor-pointer"
             >
               {isCreating ? (
                 <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  <span>Concluir Matrícula & Convidar</span>
+                  <span>Concluir Matrícula</span>
                 </>
               )}
             </button>
@@ -219,3 +215,5 @@ export const AdminAlunoNovo: React.FC = () => {
     </div>
   );
 };
+
+export default AdminAlunoNovo;

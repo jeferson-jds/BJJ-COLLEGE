@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { Aluno, Profile, RoleUsuario } from '../types/database';
-import { isRealSupabaseConfigured, supabase } from '../lib/supabase';
-import { localStore } from '../lib/store';
-import { MOCK_USERS } from '../lib/mockData';
+import { supabase } from '../lib/supabase';
 
 export interface AuthUser {
   id: string;
@@ -19,10 +17,11 @@ interface AuthContextType {
   isAluno: boolean;
   alunoData: Aluno | null;
   isLoading: boolean;
-  isDemoMode: boolean;
+  isDemoMode?: boolean;
+  switchMockUser?: (target: any) => void;
   signIn: (email: string, senha: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
-  switchMockUser: (target: 'admin' | 'aluno1' | 'aluno2') => void;
+  updateProfilePhoto: (photoUrl: string) => Promise<void>;
   refreshUserData: () => Promise<void>;
 }
 
@@ -35,149 +34,106 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [alunoData, setAlunoData] = useState<Aluno | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Inicializa sessão
+  // Inicializa sessão real via Supabase
   const initSession = async () => {
     setIsLoading(true);
     try {
-      if (isRealSupabaseConfigured) {
-        // Obter sessão real do Supabase
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const authUser = session.user;
-          // Buscar profile e role
-          const { data: profileRow } = await (supabase.from('profiles') as any)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.warn('Sessão Supabase não ativa:', sessionError.message);
+      }
+
+      if (session?.user) {
+        const authUser = session.user;
+
+        // Buscar profile na tabela profiles
+        const { data: profileRow } = await (supabase.from('profiles') as any)
+          .select('*')
+          .eq('user_id', authUser.id)
+          .maybeSingle();
+
+        // Buscar papel do usuário na tabela user_roles
+        const { data: roleRow } = await (supabase.from('user_roles') as any)
+          .select('role')
+          .eq('user_id', authUser.id)
+          .maybeSingle();
+
+        const userRole = ((roleRow as any)?.role as RoleUsuario) || 'aluno';
+
+        setUser({
+          id: authUser.id,
+          email: authUser.email || '',
+          nome_completo: (profileRow as any)?.nome_completo || authUser.email || 'Usuário',
+          role: userRole,
+        });
+        setProfile((profileRow as any) || null);
+        setRole(userRole);
+
+        // Se for aluno, carrega os dados específicos da tabela alunos
+        if (profileRow) {
+          const { data: alunoRow } = await (supabase.from('alunos') as any)
             .select('*')
-            .eq('user_id', authUser.id)
+            .eq('profile_id', (profileRow as any).id)
             .maybeSingle();
-
-          const { data: roleRow } = await (supabase.from('user_roles') as any)
-            .select('role')
-            .eq('user_id', authUser.id)
-            .maybeSingle();
-
-          const userRole = ((roleRow as any)?.role as RoleUsuario) || 'aluno';
-
-          setUser({
-            id: authUser.id,
-            email: authUser.email || '',
-            nome_completo: (profileRow as any)?.nome_completo || authUser.email || '',
-            role: userRole,
-          });
-          setProfile((profileRow as any) || null);
-          setRole(userRole);
-
-          if (userRole === 'aluno' && profileRow) {
-            const { data: alunoRow } = await (supabase.from('alunos') as any)
-              .select('*')
-              .eq('profile_id', (profileRow as any).id)
-              .maybeSingle();
-            setAlunoData(alunoRow || null);
-          }
+          setAlunoData(alunoRow || null);
         } else {
-          setUser(null);
-          setProfile(null);
-          setRole(null);
           setAlunoData(null);
         }
       } else {
-        // Modo Local/Demo: carrega usuário salvo em localStorage ou padrão Prof. Rogério
-        const savedUserId = localStorage.getItem('bjj_current_mock_user_id') || MOCK_USERS.admin.user_id;
-        loadMockUserById(savedUserId);
-      }
-    } catch (err) {
-      console.error('Erro ao inicializar sessão de autenticação:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadMockUserById = (userId: string) => {
-    const profiles = localStore.getProfiles();
-    const roles = localStore.getRoles();
-    const userRoleItem = roles.find((r) => r.user_id === userId);
-    const prof = profiles.find((p) => p.user_id === userId);
-
-    if (prof && userRoleItem) {
-      setUser({
-        id: prof.user_id || userId,
-        email: prof.email,
-        nome_completo: prof.nome_completo,
-        role: userRoleItem.role,
-      });
-      setProfile(prof);
-      setRole(userRoleItem.role);
-
-      if (userRoleItem.role === 'aluno') {
-        const alunos = localStore.getAlunos();
-        const foundAluno = alunos.find((a) => a.profile_id === prof.id);
-        setAlunoData(foundAluno || null);
-      } else {
+        setUser(null);
+        setProfile(null);
+        setRole(null);
         setAlunoData(null);
       }
-    } else {
-      // Fallback para admin
-      const adminProf = profiles.find((p) => p.user_id === MOCK_USERS.admin.user_id)!;
-      setUser({
-        id: adminProf.user_id!,
-        email: adminProf.email,
-        nome_completo: adminProf.nome_completo,
-        role: 'admin',
-      });
-      setProfile(adminProf);
-      setRole('admin');
+    } catch (err) {
+      console.error('Erro ao inicializar sessão de autenticação com Supabase:', err);
+      setUser(null);
+      setProfile(null);
+      setRole(null);
       setAlunoData(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     initSession();
 
-    if (isRealSupabaseConfigured) {
-      const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        if (session?.user) {
-          initSession();
-        } else {
-          setUser(null);
-          setProfile(null);
-          setRole(null);
-          setAlunoData(null);
-        }
-      });
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        initSession();
+      } else {
+        setUser(null);
+        setProfile(null);
+        setRole(null);
+        setAlunoData(null);
+      }
+    });
 
-      return () => {
-        authListener.subscription.unsubscribe();
-      };
-    }
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, senha: string): Promise<{ error?: string }> => {
     setIsLoading(true);
     try {
-      if (isRealSupabaseConfigured) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-        if (error) {
-          return { error: error.message };
-        }
-        await initSession();
-        return {};
-      } else {
-        // Autenticação mock por email
-        const profiles = localStore.getProfiles();
-        const found = profiles.find((p) => p.email.toLowerCase() === email.toLowerCase());
-        if (!found) {
-          return { error: 'Usuário não encontrado. Verifique o e-mail ou use as contas demo.' };
-        }
-        if (senha.length < 4) {
-          return { error: 'Senha incorreta.' };
-        }
-        if (found.user_id) {
-          localStorage.setItem('bjj_current_mock_user_id', found.user_id);
-          loadMockUserById(found.user_id);
-          return {};
-        } else {
-          return { error: 'Conta ainda não ativada. Use o link de primeiro acesso.' };
-        }
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: senha,
+      });
+
+      if (error) {
+        return { error: error.message };
       }
+
+      if (data.session) {
+        await initSession();
+      }
+
+      return {};
+    } catch (err) {
+      return { error: (err as Error).message || 'Falha na autenticação.' };
     } finally {
       setIsLoading(false);
     }
@@ -186,24 +142,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     setIsLoading(true);
     try {
-      if (isRealSupabaseConfigured) {
-        await supabase.auth.signOut();
-      }
+      await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
       setRole(null);
       setAlunoData(null);
-      localStorage.removeItem('bjj_current_mock_user_id');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const switchMockUser = (target: 'admin' | 'aluno1' | 'aluno2') => {
-    const targetUser = MOCK_USERS[target];
-    if (!targetUser) return;
-    localStorage.setItem('bjj_current_mock_user_id', targetUser.user_id);
-    loadMockUserById(targetUser.user_id);
+  const updateProfilePhoto = async (photoUrl: string) => {
+    if (!profile) return;
+    try {
+      const { error } = await (supabase.from('profiles') as any)
+        .update({ foto_url: photoUrl, updated_at: new Date().toISOString() })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      setProfile((prev) => (prev ? { ...prev, foto_url: photoUrl } : null));
+    } catch (err) {
+      console.error('Erro ao atualizar foto no Supabase:', err);
+      throw err;
+    }
   };
 
   const refreshUserData = async () => {
@@ -219,10 +181,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAluno: role === 'aluno',
       alunoData,
       isLoading,
-      isDemoMode: !isRealSupabaseConfigured,
       signIn,
       signOut,
-      switchMockUser,
+      updateProfilePhoto,
       refreshUserData,
     }),
     [user, profile, role, alunoData, isLoading]

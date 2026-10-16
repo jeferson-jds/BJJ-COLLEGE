@@ -1,8 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BJJCollegeConfig } from '../types/database';
-import { isRealSupabaseConfigured, supabase } from '../lib/supabase';
-import { localStore } from '../lib/store';
-import { INITIAL_CONFIG } from '../lib/mockData';
+import { BJJCollegeConfig, DEFAULT_CONFIG } from '../types/database';
+import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
@@ -13,9 +11,14 @@ export function useConfiguracoes() {
   const configQuery = useQuery({
     queryKey: ['configuracoes'],
     queryFn: async (): Promise<BJJCollegeConfig & Record<string, string>> => {
-      if (isRealSupabaseConfigured) {
+      try {
         const { data, error } = await (supabase.from('configuracoes') as any).select('chave, valor');
-        if (error) throw new Error(error.message);
+        if (error) {
+          console.warn('Erro ao carregar configurações do Supabase, usando padrão:', error.message);
+          return {
+            ...DEFAULT_CONFIG,
+          };
+        }
 
         const configMap: Record<string, string> = {};
         (data as any[])?.forEach((item: any) => {
@@ -26,19 +29,17 @@ export function useConfiguracoes() {
 
         const nome = configMap['nome_professor'];
         return {
-          chave_pix: configMap['chave_pix'] ?? INITIAL_CONFIG.chave_pix,
-          valor_mensalidade: configMap['valor_mensalidade'] ?? INITIAL_CONFIG.valor_mensalidade,
-          dia_vencimento: configMap['dia_vencimento'] ?? INITIAL_CONFIG.dia_vencimento,
-          nome_academia: configMap['nome_academia'] ?? INITIAL_CONFIG.nome_academia,
-          nome_professor: !nome || nome === 'Gorillaz' ? 'Rogério' : nome,
+          chave_pix: configMap['chave_pix'] ?? DEFAULT_CONFIG.chave_pix,
+          valor_mensalidade: configMap['valor_mensalidade'] ?? DEFAULT_CONFIG.valor_mensalidade,
+          dia_vencimento: configMap['dia_vencimento'] ?? DEFAULT_CONFIG.dia_vencimento,
+          nome_academia: configMap['nome_academia'] ?? DEFAULT_CONFIG.nome_academia,
+          nome_professor: !nome || nome === 'Gorillaz' ? DEFAULT_CONFIG.nome_professor : nome,
           ...configMap,
         };
-      } else {
-        const local = localStore.getConfig();
-        const nome = !local.nome_professor || local.nome_professor === 'Gorillaz' ? 'Rogério' : local.nome_professor;
+      } catch (err) {
+        console.warn('Falha na query de configurações:', err);
         return {
-          ...local,
-          nome_professor: nome,
+          ...DEFAULT_CONFIG,
         };
       }
     },
@@ -51,24 +52,18 @@ export function useConfiguracoes() {
         throw new Error('Apenas o Professor Rogério/Admin pode alterar as configurações da academia.');
       }
 
-      if (isRealSupabaseConfigured) {
-        const entries = Object.entries(newConfig);
-        for (const [chave, valor] of entries) {
-          if (valor !== undefined) {
-            const { error } = await (supabase.from('configuracoes') as any)
-              .upsert({ chave, valor: String(valor) }, { onConflict: 'chave' });
-            if (error) throw new Error(error.message);
-          }
+      const entries = Object.entries(newConfig);
+      for (const [chave, valor] of entries) {
+        if (valor !== undefined) {
+          const { error } = await (supabase.from('configuracoes') as any)
+            .upsert({ chave, valor: String(valor) }, { onConflict: 'chave' });
+          if (error) throw new Error(error.message);
         }
-      } else {
-        const current = localStore.getConfig();
-        const updated = { ...current, ...newConfig } as BJJCollegeConfig;
-        localStore.saveConfig(updated);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['configuracoes'] });
-      toast.success('Configurações da BJJ College salvas com sucesso!');
+      toast.success('Configurações da BJJ College salvas com sucesso no Supabase!');
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Erro ao salvar configurações.');
@@ -76,8 +71,7 @@ export function useConfiguracoes() {
   });
 
   const activeConfig: BJJCollegeConfig & Record<string, string> = configQuery.data || {
-    ...INITIAL_CONFIG,
-    nome_professor: 'Rogério',
+    ...DEFAULT_CONFIG,
   };
 
   return {
