@@ -8,6 +8,7 @@ import {
   Settings,
   ShieldCheck,
   User,
+  Camera,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -21,11 +22,12 @@ export const BottomNavigation: React.FC = () => {
     { to: '/admin/alunos', label: 'Alunos', icon: Users, end: false },
     { to: '/admin/pagamentos', label: 'Mensalidades', icon: CreditCard, end: false },
     { to: '/admin/avisos', label: 'Mural', icon: Megaphone, end: false },
-    { to: '/admin/configuracoes', label: 'Config', icon: Settings, end: false },
+    { to: '/historia', label: 'História', icon: Camera, end: false },
   ];
 
   const alunoLinks = [
     { to: '/aluno', label: 'Início', icon: ShieldCheck, end: true },
+    { to: '/historia', label: 'História', icon: Camera, end: false },
     { to: '/aluno/perfil', label: 'Meu Perfil', icon: User, end: false },
   ];
 

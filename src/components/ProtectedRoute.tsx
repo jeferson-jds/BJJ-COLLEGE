@@ -27,7 +27,7 @@ export const AdminRoute: React.FC = () => {
 };
 
 export const AlunoRoute: React.FC = () => {
-  const { user, isAluno, isAdmin, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -42,5 +42,23 @@ export const AlunoRoute: React.FC = () => {
   }
 
   // Se o professor entrar na rota de aluno, ele pode visualizar o modo aluno ou voltar pro admin
+  return <Outlet />;
+};
+
+export const AuthenticatedRoute: React.FC = () => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <SkeletonList count={3} />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   return <Outlet />;
 };

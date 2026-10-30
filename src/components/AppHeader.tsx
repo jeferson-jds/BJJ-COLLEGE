@@ -12,6 +12,8 @@ import {
   User,
   Menu,
   X,
+  Camera,
+  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useConfiguracoes } from '../hooks/useConfiguracoes';
@@ -131,6 +133,19 @@ export function AppHeader({ userName, userFaixa, isAdmin }: AppHeaderProps) {
               <span>Mural</span>
             </NavLink>
             <NavLink
+              to="/historia"
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-['Oswald',sans-serif] uppercase tracking-wider transition-all ${
+                  isActive
+                    ? 'bg-red-600 text-white shadow-red-glow font-semibold'
+                    : 'text-neutral-300 hover:text-white hover:bg-neutral-900 font-medium'
+                }`
+              }
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>História & Acervo</span>
+            </NavLink>
+            <NavLink
               to="/admin/configuracoes"
               className={({ isActive }) =>
                 `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-['Oswald',sans-serif] uppercase tracking-wider transition-all ${
@@ -164,6 +179,19 @@ export function AppHeader({ userName, userFaixa, isAdmin }: AppHeaderProps) {
               <span>Meu Treino & PIX</span>
             </NavLink>
             <NavLink
+              to="/historia"
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-['Oswald',sans-serif] uppercase tracking-wider transition-all ${
+                  isActive
+                    ? 'bg-red-600 text-white shadow-red-glow font-semibold'
+                    : 'text-neutral-300 hover:text-white hover:bg-neutral-900 font-medium'
+                }`
+              }
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>História & Galeria</span>
+            </NavLink>
+            <NavLink
               to="/aluno/perfil"
               className={({ isActive }) =>
                 `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-['Oswald',sans-serif] uppercase tracking-wider transition-all ${
@@ -193,7 +221,7 @@ export function AppHeader({ userName, userFaixa, isAdmin }: AppHeaderProps) {
                 alt={displayProfessorTitle}
                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-red-600 object-cover shadow-sm"
                 onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80';
+                  (e.currentTarget as HTMLImageElement).src = '/images/logo-gorillaz.jpg';
                 }}
               />
               <div className="hidden sm:flex flex-col text-left pr-1.5">
@@ -278,6 +306,14 @@ export function AppHeader({ userName, userFaixa, isAdmin }: AppHeaderProps) {
                 <span>Mural do Mestre</span>
               </NavLink>
               <NavLink
+                to="/historia"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-neutral-200 hover:bg-red-600/20 hover:text-white font-medium"
+              >
+                <Camera className="w-4 h-4 text-red-500" />
+                <span>História do Mestre & Acervo</span>
+              </NavLink>
+              <NavLink
                 to="/admin/configuracoes"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-neutral-200 hover:bg-red-600/20 hover:text-white font-medium"
@@ -296,6 +332,14 @@ export function AppHeader({ userName, userFaixa, isAdmin }: AppHeaderProps) {
               >
                 <ShieldCheck className="w-4 h-4 text-red-500" />
                 <span>Meu Treino & PIX</span>
+              </NavLink>
+              <NavLink
+                to="/historia"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-neutral-200 hover:bg-red-600/20 hover:text-white font-medium"
+              >
+                <Camera className="w-4 h-4 text-red-500" />
+                <span>História do Mestre & Acervo</span>
               </NavLink>
               <NavLink
                 to="/aluno/perfil"

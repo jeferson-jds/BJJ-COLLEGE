@@ -26,6 +26,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Sparkles,
+  Camera,
 } from 'lucide-react';
 
 // Componente interno com todos os hooks exclusivos do Professor/Admin
@@ -106,7 +107,7 @@ const AdminDashboardView: React.FC = () => {
                 alt={`Prof. ${nomeProfessor}`}
                 className="w-20 h-20 rounded-full border-4 border-red-600 object-cover shadow-red-glow"
                 onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80';
+                  (e.currentTarget as HTMLImageElement).src = '/images/logo-gorillaz.jpg';
                 }}
               />
             </div>
@@ -130,7 +131,7 @@ const AdminDashboardView: React.FC = () => {
             </div>
           </div>
 
-          {/* Dois botões à direita: Matricular Aluno (vermelho sólido) e Mensalidades (outline branco) */}
+          {/* Botões à direita: Matricular Aluno, Acervo Histórico e Mensalidades */}
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
               type="button"
@@ -141,6 +142,13 @@ const AdminDashboardView: React.FC = () => {
               <UserPlus className="w-4 h-4" />
               <span>Matricular Aluno</span>
             </button>
+            <Link
+              to="/historia"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-neutral-900/90 hover:bg-neutral-800 text-neutral-200 hover:text-white text-xs font-bold font-['Oswald',sans-serif] uppercase tracking-wider rounded-xl transition-all border border-neutral-700 hover:border-red-600 cursor-pointer"
+            >
+              <Camera className="w-4 h-4 text-red-500" />
+              <span>Acervo Histórico</span>
+            </Link>
             <Link
               id="btn-pagamentos-header"
               to="/admin/pagamentos"

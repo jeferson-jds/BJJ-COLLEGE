@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppHeader } from './components/AppHeader';
 import { BottomNavigation } from './components/BottomNavigation';
-import { AdminRoute, AlunoRoute } from './components/ProtectedRoute';
+import { AdminRoute, AlunoRoute, AuthenticatedRoute } from './components/ProtectedRoute';
 import { SplashScreen } from './components/SplashScreen';
 import { FuturisticWatermark } from './components/FuturisticWatermark';
 import { useAuth } from './hooks/useAuth';
@@ -20,6 +20,7 @@ import { AdminAvisos } from './pages/AdminAvisos';
 import { AdminConfiguracoes } from './pages/AdminConfiguracoes';
 import { AlunoDashboard } from './pages/AlunoDashboard';
 import { AlunoPerfil } from './pages/AlunoPerfil';
+import { HistoriaGaleria } from './pages/HistoriaGaleria';
 
 const RootRedirect: React.FC = () => {
   const { user, isAdmin, isLoading } = useAuth();
@@ -86,6 +87,13 @@ const AppContent: React.FC = () => {
             <Route path="/aluno/perfil" element={<AlunoPerfil />} />
           </Route>
 
+          {/* Rota Compartilhada: História do Mestre & Acervo Fotográfico */}
+          <Route element={<AuthenticatedRoute />}>
+            <Route path="/historia" element={<HistoriaGaleria />} />
+            <Route path="/aluno/historia" element={<HistoriaGaleria />} />
+            <Route path="/admin/historia" element={<HistoriaGaleria />} />
+          </Route>
+
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -101,12 +109,12 @@ const AppContent: React.FC = () => {
   );
 };
 
-export const App: React.FC = () => {
+export function App() {
   return (
     <BrowserRouter>
       <AppContent />
     </BrowserRouter>
   );
-};
+}
 
 export default App;

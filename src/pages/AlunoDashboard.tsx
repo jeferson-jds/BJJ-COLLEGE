@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAlunos } from '../hooks/useAlunos';
 import { usePagamentos } from '../hooks/usePagamentos';
@@ -8,6 +9,7 @@ import { useCheckInsDoAluno } from '../hooks/useCheckIn';
 import { FaixaBadge } from '../components/FaixaBadge';
 import { StatusIndicator } from '../components/StatusIndicator';
 import { SkeletonList } from '../components/SkeletonLoader';
+import { GraduacaoMountainMap } from '../components/GraduacaoMountainMap';
 import { formatCurrencyBRL, formatDateBR } from '../lib/utils';
 import { FaixaBJJ } from '../types/database';
 import {
@@ -29,6 +31,8 @@ import {
   Lock,
   Phone,
   Pin,
+  Camera,
+  Mountain,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -200,18 +204,31 @@ export const AlunoDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Selo de Acesso Privado */}
-          <div className="bg-[#0f0f0f] border border-neutral-800 p-3.5 rounded-2xl flex items-center gap-3 shrink-0 sm:self-center">
-            <div className="w-9 h-9 rounded-xl bg-red-950/60 border border-red-800/40 flex items-center justify-center text-red-500">
-              <Lock className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-white uppercase tracking-wider font-['Oswald',sans-serif]">
-                Acesso do Aluno
-              </p>
-              <p className="text-[10px] text-neutral-400">
-                Dados protegidos por RLS
-              </p>
+          {/* Selo de Acesso Privado e Link para História */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0 sm:self-center">
+            <Link
+              to="/historia"
+              className="px-3.5 py-2.5 rounded-2xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 hover:border-red-600/60 transition-all flex items-center gap-2 text-neutral-200 hover:text-white"
+              title="Acessar Galeria Histórica e Conhecer o Mestre"
+            >
+              <Camera className="w-4 h-4 text-red-500" />
+              <span className="text-xs font-bold font-['Oswald',sans-serif] uppercase tracking-wider">
+                Acervo Histórico
+              </span>
+            </Link>
+
+            <div className="bg-[#0f0f0f] border border-neutral-800 p-2.5 rounded-2xl flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-red-950/60 border border-red-800/40 flex items-center justify-center text-red-500">
+                <Lock className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-white uppercase tracking-wider font-['Oswald',sans-serif]">
+                  Área do Aluno
+                </p>
+                <p className="text-[9px] text-neutral-400">
+                  Gorillaz BJJ
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -249,9 +266,9 @@ export const AlunoDashboard: React.FC = () => {
                 style={{ width: `${percMeta}%` }}
               />
             </div>
-            <div className="flex justify-between text-[10px] text-neutral-500 font-medium">
+            <div className="flex justify-between text-[11px] text-neutral-400 font-mono">
               <span>{percMeta}% da meta mensal</span>
-              <span>Total: {totalTreinosAcumulado} presenças</span>
+              <span>Total no Tatame: {totalTreinosAcumulado}</span>
             </div>
           </div>
         </div>
@@ -264,18 +281,21 @@ export const AlunoDashboard: React.FC = () => {
                 <Award className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold font-['Oswald',sans-serif] uppercase tracking-wider text-neutral-300">
-                Próxima Graduação
+                Próximo Passo
               </span>
             </div>
-            <span className="text-xs font-bold text-amber-500 uppercase tracking-wider font-['Oswald',sans-serif]">
-              {proximoPasso.titulo}
+            <span className="text-xs font-bold text-amber-500 font-mono">
+              {proximoPasso.tipo === 'grau' ? 'Grau no Tatame' : 'Exame'}
             </span>
           </div>
 
           <div>
-            <span className="text-lg font-bold font-['Oswald',sans-serif] uppercase text-white tracking-wide block">
-              {proximoPasso.alvo}
-            </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-black font-['Oswald',sans-serif] text-white">
+                {proximoPasso.titulo}
+              </span>
+              <span className="text-xs text-neutral-400">({proximoPasso.alvo})</span>
+            </div>
             <p className="text-xs text-neutral-400 mt-0.5">
               {proximoPasso.detalhe}
             </p>
@@ -350,7 +370,15 @@ export const AlunoDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. BLOCO PIX DE PAGAMENTO OFICIAL */}
+      {/* 3. CAMINHO DA GRADUAÇÃO: INFOGRÁFICO INTERATIVO DA MONTANHA */}
+      <GraduacaoMountainMap
+        faixaAtual={faixaAtual}
+        graus={grausAtuais}
+        dataInicio={currentAluno?.data_inicio}
+        totalTreinos={totalTreinosAcumulado}
+      />
+
+      {/* 4. BLOCO PIX DE PAGAMENTO OFICIAL */}
       <div className="bg-[#141414] p-6 rounded-2xl border border-red-900/30 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-800">
           <div className="flex items-center gap-3">
@@ -368,86 +396,108 @@ export const AlunoDashboard: React.FC = () => {
           </div>
 
           <span className="text-xs font-bold text-white bg-black/60 border border-neutral-800 px-3.5 py-1.5 rounded-xl self-start sm:self-auto font-mono">
-            {formatCurrencyBRL(valorIndividual)} / mês
+            {formatCurrencyBRL(valorIndividual)}
           </span>
         </div>
 
-        {/* Chave PIX com botão Copiar */}
-        <div className="bg-black/60 p-4 rounded-xl border border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="min-w-0">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block mb-1">
-              Chave PIX Oficial (Número Comercial do Prof. Rogério):
-            </span>
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="font-mono text-base sm:text-lg font-bold text-red-400 select-all">
-                {chavePixOficialFormatada}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <div className="space-y-3">
+            <div className="p-4 rounded-xl bg-black/50 border border-neutral-800 space-y-1">
+              <span className="text-[11px] uppercase font-bold text-neutral-400 tracking-wider">
+                Chave PIX Cadastrada (Telefone do Professor)
               </span>
-              <span className="text-xs text-neutral-400 font-mono">
-                (valor limpo para cópia: <strong className="text-white font-bold">{chavePixOficialLimpa}</strong>)
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-base sm:text-lg font-bold font-mono text-white select-all">
+                  {config.chave_pix || chavePixOficialFormatada}
+                </span>
+                <span className="text-[10px] uppercase font-bold text-red-400 bg-red-950/80 px-2 py-0.5 rounded border border-red-900/50">
+                  {config.tipo_chave_pix || 'Telefone'}
+                </span>
+              </div>
+              <p className="text-[11px] text-neutral-400">
+                Favorecido: <strong className="text-neutral-200">Prof. {config.nome_professor || 'Rogério'}</strong>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCopyPix}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-['Oswald',sans-serif] uppercase tracking-wider font-bold text-sm bg-red-600 hover:bg-red-700 text-white shadow-red-glow transition-all cursor-pointer active:scale-95"
+            >
+              {copiedPix ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-300" />
+                  <span>Chave PIX Copiada com Sucesso!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copiar Chave PIX (21991545136)</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="p-4 rounded-xl bg-neutral-900/40 border border-neutral-800 text-xs text-neutral-300 space-y-2">
+            <div className="flex items-center gap-2 font-bold text-white uppercase font-['Oswald',sans-serif]">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>Instruções Rápidas de Pagamento</span>
+            </div>
+            <ol className="list-decimal list-inside space-y-1 text-neutral-400">
+              <li>Clique no botão acima para copiar a chave comercial.</li>
+              <li>Abra o aplicativo do seu banco na opção <strong>PIX ➔ Transferir</strong>.</li>
+              <li>Cole a chave e confirme o nome do <strong>Prof. Rogério</strong>.</li>
+              <li>Após o pagamento, envie o comprovante no WhatsApp do professor.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. ESTRUTURA DO PERFIL & MURAL OFICIAL DO MESTRE */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Card de Honra ao Mestre Rogério com Foto Oficial */}
+        <div className="bg-[#141414] p-6 rounded-2xl border border-neutral-800 shadow-xl space-y-4 flex flex-col items-center text-center justify-between">
+          <div className="space-y-3 flex flex-col items-center">
+            <div className="relative group">
+              <img
+                src="/images/professor.jpg"
+                alt="Mestre Rogério Gorillaz"
+                className="w-28 h-28 rounded-2xl border-4 border-red-600 object-cover shadow-red-glow transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/images/logo-gorillaz.jpg';
+                }}
+              />
+              <span className="absolute -bottom-2 -right-2 px-2.5 py-0.5 rounded-full bg-red-600 text-white font-black text-[9px] uppercase tracking-wider shadow-md">
+                LÍDER • PRETA 4º GRAU
               </span>
+            </div>
+
+            <div>
+              <h3 className="font-['Oswald',sans-serif] font-bold text-lg text-white uppercase tracking-wide">
+                Mestre Rogério Gorillaz
+              </h3>
+              <p className="text-xs text-red-500 font-bold uppercase tracking-wider mt-0.5">
+                Faixa Preta 4º Grau • IBJJF
+              </p>
+              <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
+                Fundador da Família Gorillaz Jiu-Jitsu. Disciplina, técnica refinada e lealdade dentro e fora dos tatames.
+              </p>
             </div>
           </div>
 
-          <button
-            id="btn-copiar-pix-aluno"
-            type="button"
-            onClick={handleCopyPix}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold font-['Oswald',sans-serif] uppercase tracking-wider rounded-xl transition-all shadow-red-glow shrink-0 cursor-pointer"
-          >
-            {copiedPix ? (
-              <>
-                <Check className="w-4 h-4 text-white" />
-                <span>Chave Copiada!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4 text-white" />
-                <span>Copiar Chave PIX (21991545136)</span>
-              </>
-            )}
-          </button>
-        </div>
+          <div className="w-full space-y-2 pt-3 border-t border-neutral-800">
+            <div className="flex items-center justify-center gap-2 text-xs text-neutral-300 font-mono">
+              <Phone className="w-3.5 h-3.5 text-red-500" />
+              <span>(21) 99154-5136</span>
+            </div>
 
-        <p className="text-[11px] text-neutral-400 flex items-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-          <span>Após a transferência via PIX, o Mestre Rogério confirma a baixa no sistema com recibo digital auditado.</span>
-        </p>
-      </div>
-
-      {/* 4. ESTRUTURA DO PERFIL & MURAL OFICIAL DO MESTRE */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Card de Honra ao Mestre Rogério */}
-        <div className="bg-[#141414] p-6 rounded-2xl border border-neutral-800 shadow-xl space-y-4 flex flex-col items-center text-center">
-          <div className="relative">
-            <img
-              src="/images/professor.jpg"
-              alt="Mestre Rogério Gorillaz"
-              className="w-24 h-24 rounded-full border-4 border-red-600 object-cover shadow-red-glow"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src =
-                  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80';
-              }}
-            />
-            <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-red-600 text-white font-black text-[9px] uppercase tracking-wider">
-              LÍDER
-            </span>
-          </div>
-
-          <div>
-            <h3 className="font-['Oswald',sans-serif] font-bold text-lg text-white uppercase tracking-wide">
-              Mestre Rogério Gorillaz
-            </h3>
-            <p className="text-xs text-red-500 font-bold uppercase tracking-wider mt-0.5">
-              Faixa Preta 4º Grau
-            </p>
-            <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-              Fundador da Família Gorillaz Jiu-Jitsu. Disciplina, técnica e lealdade dentro e fora dos tatames.
-            </p>
-          </div>
-
-          <div className="w-full pt-3 border-t border-neutral-800 flex items-center justify-center gap-2 text-xs text-neutral-300 font-mono">
-            <Phone className="w-3.5 h-3.5 text-red-500" />
-            <span>(21) 99154-5136</span>
+            <Link
+              to="/historia"
+              className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 hover:text-white border border-neutral-700 hover:border-red-600/60 text-xs font-bold uppercase tracking-wider font-['Oswald',sans-serif] transition-all cursor-pointer"
+            >
+              <Camera className="w-3.5 h-3.5 text-red-500" />
+              <span>Conhecer Acervo & Primeiros Alunos</span>
+            </Link>
           </div>
         </div>
 
@@ -488,8 +538,7 @@ export const AlunoDashboard: React.FC = () => {
                           alt="Mestre Rogério"
                           className="w-8 h-8 rounded-full border border-red-600 object-cover shrink-0"
                           onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).src =
-                              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80';
+                            (e.currentTarget as HTMLImageElement).src = '/images/logo-gorillaz.jpg';
                           }}
                         />
                         <div>
@@ -515,7 +564,7 @@ export const AlunoDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 5. HISTÓRICOS: JORNADA DE FAIXAS & MENSALIDADES */}
+      {/* 6. HISTÓRICOS: JORNADA DE FAIXAS & MENSALIDADES */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Minha Jornada de Faixas */}
         <div className="bg-[#141414] p-6 rounded-2xl border border-neutral-800 shadow-xl space-y-4">
@@ -602,7 +651,7 @@ export const AlunoDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 6. CÓDIGO DE HONRA DA FAMÍLIA GORILLAZ */}
+      {/* 7. CÓDIGO DE HONRA DA FAMÍLIA GORILLAZ */}
       <div className="bg-[#0c0c0c] text-neutral-300 p-5 rounded-2xl border border-red-900/30 text-xs space-y-2">
         <div className="flex items-center gap-2 text-white font-bold text-sm font-['Oswald',sans-serif] uppercase tracking-wide">
           <BookOpen className="w-4 h-4 text-red-500" />
